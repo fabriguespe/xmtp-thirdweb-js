@@ -21,17 +21,23 @@ Building a great 'Connect Wallet' flow is the hardest part of Web3. Luckily our 
 
 ### Concepts
 
-#### Wallet SDK
-A development kit which gives devs access the largest catalog of wallets, from custodial to MPC to smart contracts. [Read more](https://twitter.com/thirdweb/status/1654191962751389697)
+#### Thirdweb WalletSDK
+A development kit which gives devs access the largest catalog of wallets, from custodial to MPC to smart contracts. 
+[Read more](https://twitter.com/thirdweb/status/1654191962751389697)
 
-#### Content Types
-Content types are a way to describe the *type* of *content* a message contains on XMTP. Out of the box, XMTP's SDKs support one content type: `text`. [Read more](https://xmtp.org/docs/dev-concepts/content-types)
+#### XMTP Content-Types
+Content types are a way to describe the *type* of *content* a message contains on XMTP. Out of the box, XMTP's SDKs support one content type: `text`. 
+[Read more](https://xmtp.org/docs/dev-concepts/content-types)
+
+#### Thirdweb storage
+Save development time. We handling the complexities of decentralized file management for you. No need to worry about fetching from multiple IPFS gateways, handling file and metadata upload formats, etc.
+[Read more](https://thirdweb.com/storage)
 
 ### Demo App
 
 In this article, I will be showing you how to create a NodeJS script that check out balances and interacts with the Lending Pool contract of AAVE.
 
-[Checkout the GitHub repo](.) | [View Live Code](.)
+[Checkout the GitHub repo](https://github.com/fabriguespe/xmtp-thirdweb-js) | [View Live Code](.)
 
 #### What we will learn:
 - Set up Thirwallet ConnectWallet button
@@ -40,14 +46,13 @@ In this article, I will be showing you how to create a NodeJS script that check 
 - Send message
 - Send remote attachment
 - Receive attachments
-- 
 
 ### Getting Started
 To get started we'll first create and configure the Next.js application.
 
 To generate a new Next.js app, run the following command from your terminal:
 
-```
+```tsx
 npx create-next-app xmtp-thirdweb
 
 ✔ Would you like to use TypeScript with this project? Yes
@@ -60,7 +65,7 @@ npx create-next-app xmtp-thirdweb
 
 Next, change into the new directory and install these dependencies for using XMTP and Thirdweb:
 
-```
+```tsx
 npm install @thirdweb-dev/react @thirdweb-dev/sdk @xmtp/xmtp-js xmtp-content-type-remote-attachment 
 ```
 
