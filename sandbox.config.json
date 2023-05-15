@@ -1,3 +1,5 @@
 {
+    "container": { "port": 3212, "startScript": "custom", "node": "18" }	,
+
     "node":"18"
 }
