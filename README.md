@@ -20,7 +20,7 @@ Save development time. We handling the complexities of decentralized file manage
 
 ### Demo App
 
-In this article, I will be showing you how to create a NodeJS script that check out balances and interacts with the Lending Pool contract of AAVE.
+In this repo you will find how to implement these concepts in a simple chat app.
 
 [GitHub repo](https://github.com/fabriguespe/xmtp-thirdweb-js) | [View Live Code](.)
 
@@ -138,6 +138,15 @@ const handleSmallFile = async () => {
 
 #### Send remote attachment
 Large attachments above 1MB can be sent using the RemoteAttachmentCodec. The codec will automatically encrypt the attachment and upload it to the Thirdweb network.
+
+We will use the amazing SDK of Thirdweb that is going to upload the image file to Ipfs and return the url of the file. Just like this.
+
+```tsx
+  const uploadUrl = await upload({
+    data: [file],
+    options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
+  });
+```
 
 ```tsx
 // Function to handle sending a large file attachment
