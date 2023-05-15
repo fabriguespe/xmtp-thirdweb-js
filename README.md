@@ -1,20 +1,3 @@
----
-slug: thirdbweb-wallet-upload
-hide_table_of_contents: true
-title: "Introducing Wallet SDK and Sending remote storage"
-date: 2023-05-12
-authors: eng
-image: "https://blog.thirdweb.com/content/images/size/w2000/2023/05/How-to-use-smart-wallet-.png"
-description: "Sending remote attachments with XMTP"
-tags:
-- Content Types
-- SDKs
-- Media
-- Developers
-- WalletSDK
-- Thirdweb
----
-
 ### Introduction
 
 Building a great 'Connect Wallet' flow is the hardest part of Web3. Luckily our friends at third wallet have developed a great SDK to make it easy for you to build a great wallet experience for your users.
