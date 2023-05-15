@@ -1,11 +1,11 @@
 ### Introduction
 
-Building a great 'Connect Wallet' flow is the hardest part of Web3. Luckily our friends at third wallet have developed a great SDK to make it easy for you to build a great wallet experience for your users.
+Creating an effective 'Connect Wallet' flow is a challenging aspect of Web3 development. Thankfully, the team at Thirdweb has developed an excellent SDK, simplifying this process and enabling a superior wallet experience for your users.
 
 ### Concepts
 
 #### Thirdweb WalletSDK
-A development kit which gives devs access the largest catalog of wallets, from custodial to MPC to smart contracts. 
+The WalletSDK is a development kit that grants developers access to a comprehensive selection of wallets, ranging from custodial to MPC to smart contracts.
 [Read more](https://twitter.com/thirdweb/status/1654191962751389697)
 
 #### XMTP Content-Types
@@ -20,22 +20,22 @@ Save development time. We handling the complexities of decentralized file manage
 
 ### Demo App
 
-In this repo you will find how to implement these concepts in a simple chat app.
+This repository demonstrates the implementation of these concepts within a simple chat app.
 
 [GitHub repo](https://github.com/fabriguespe/xmtp-thirdweb-js) | [View Live Code](.)
 
-#### What we will learn:
-- Set up Thirwallet ConnectWallet button
-- Sign in with XMTP
-- Load conversation
-- Send message
-- Send remote attachment
-- Receive attachments
+#### Learning Objectives:
+- Setting up the ConnectWallet button
+- Signing in with XMTP
+- Loading a conversation
+- Sending a message
+- Sending a remote attachment
+- Receiving attachments
 
 ### Getting Started
-To get started we'll first create and configure the Next.js application.
+The first step involves creating and configuring the Next.js application.
 
-To generate a new Next.js app, run the following command from your terminal:
+To generate a new Next.js app, execute the following command in your terminal:
 
 ```tsx
 npx create-next-app xmtp-thirdweb
@@ -48,16 +48,16 @@ npx create-next-app xmtp-thirdweb
 ✔ Would you like to customize the default import alias? No
 ```
 
-Next, change into the new directory and install these dependencies for using XMTP and Thirdweb:
+Next, navigate into the newly created directory and install the necessary dependencies for using XMTP and Thirdweb:
 
 ```tsx
 npm install @thirdweb-dev/react @thirdweb-dev/sdk @xmtp/xmtp-js xmtp-content-type-remote-attachment 
 ```
 
-#### Set up Thirwallet ConnectWallet button
+#### Setting up the ConnectWallet button
 ![](./media/xmtp-thirdweb/screen1.png)
 
-Lets start with wrapping the app with ThirdwebProvider and then using the ConnectWallet component to connect to the wallet.
+Begin by wrapping the app with `ThirdwebProvider`, then use the `ConnectWallet` component to establish wallet connectivity.
 
 
 ```tsx
@@ -75,10 +75,10 @@ const address = useAddress();
 const signer = useSigner();
 ```
 
-That's it! Then we can follow up with the signing to XMTP
+That's it! Next, proceed with signing in to XMTP.
 
-#### Sign in with XMTP
-We are going to create a new instance of XMTP and we are going to register the content types we are going to use in our chat app.
+#### Signing in with XMTP
+Create a new XMTP instance and register the content types your chat app will utilize.
 
 ```tsx
 // Function to initialize the XMTP client
@@ -96,7 +96,7 @@ const initXmtp = async function () {
 }
 ```
 
-#### Load messages
+#### Loading a conversation
 
 In this case we are going to use our GM Bot and we are going to use the XMTP instance for creating the conversation and in case it exists it will bring its message history.
 
@@ -110,9 +110,9 @@ const newConversation = async function (xmtp,addressTo) {
   ```
 
 
-#### Send messages
+#### Sending a message
 
-Sending text requires no codec or encryption. We can just send the message as is.
+Text messages require neither codec nor encryption. They can be sent as they are.
 
 ```tsx
 const onSendMessage = async (value) => {
@@ -136,10 +136,10 @@ const handleSmallFile = async () => {
 };
 ```
 
-#### Send remote attachment
-Large attachments above 1MB can be sent using the RemoteAttachmentCodec. The codec will automatically encrypt the attachment and upload it to the Thirdweb network.
+#### Send a remote attachment
+For large attachments above 1MB, use the `RemoteAttachmentCodec`. The codec will automatically encrypt the attachment and upload it to the Thirdweb network.
 
-We will use the amazing SDK of Thirdweb that is going to upload the image file to Ipfs and return the url of the file. Just like this.
+Thirdweb's SDK will upload the image file to IPFS and return the file's URL.
 
 ```tsx
   const uploadUrl = await upload({
@@ -191,9 +191,9 @@ const handleLargeFile = async (file) => {
 ```
 
 
-#### Receive attachments
+#### Receiving attachments
 
-In our parent component we are going to add a listener that will fetch new messages from a stream.
+In the parent component, add a listener that will fetch new messages from a stream.
 
 ```tsx
 // Function to stream new messages in the conversation
@@ -212,7 +212,7 @@ const streamMessages = async () => {
 streamMessages();
 ```
 
-Later we will render this messages in the child component using a Blob for attachments.
+Render these messages in the child component using a `Blob` for attachments.
 
 ```tsx
 if (message.contentType.sameAs(ContentTypeAttachment)) {
@@ -225,7 +225,7 @@ const objectURL = (attachment) => {
   return <img src={URL.createObjectURL(blob)} width={200} className="imageurl" alt={attachment.filename} />;
 };
 ```
-With remote storage we are just going to point to the url in our html
+With remote storage, simply point the URL in your HTML.
 
 ```tsx
 if (message.contentType.sameAs(ContentTypeRemoteAttachment)) {
