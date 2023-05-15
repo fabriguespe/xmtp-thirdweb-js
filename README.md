@@ -22,7 +22,7 @@ Save development time. We handling the complexities of decentralized file manage
 
 This repository demonstrates the implementation of these concepts within a simple chat app.
 
-[GitHub repo](https://github.com/fabriguespe/xmtp-thirdweb-js) | [View Live Code](.)
+[GitHub repo](https://github.com/fabriguespe/xmtp-thirdweb-js) | [View Live Code](https://codesandbox.io/p/github/fabriguespe/xmtp-thirdweb-js/main?file=/src/components/Home.js:12,1&workspaceId=e62b6b32-35b7-415c-bdb9-743f1b880fb4)
 
 #### Learning Objectives:
 - Setting up the ConnectWallet button
