@@ -10,17 +10,19 @@ A development kit which gives devs access the largest catalog of wallets, from c
 
 #### XMTP Content-Types
 Content types are a way to describe the *type* of *content* a message contains on XMTP. Out of the box, XMTP's SDKs support one content type: `text`. 
+
 [Read more](https://xmtp.org/docs/dev-concepts/content-types)
 
 #### Thirdweb storage
 Save development time. We handling the complexities of decentralized file management for you. No need to worry about fetching from multiple IPFS gateways, handling file and metadata upload formats, etc.
+
 [Read more](https://thirdweb.com/storage)
 
 ### Demo App
 
 In this article, I will be showing you how to create a NodeJS script that check out balances and interacts with the Lending Pool contract of AAVE.
 
-[Checkout the GitHub repo](https://github.com/fabriguespe/xmtp-thirdweb-js) | [View Live Code](.)
+[GitHub repo](https://github.com/fabriguespe/xmtp-thirdweb-js) | [View Live Code](.)
 
 #### What we will learn:
 - Set up Thirwallet ConnectWallet button
