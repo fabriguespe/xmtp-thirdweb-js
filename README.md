@@ -22,7 +22,7 @@ Save development time. We handling the complexities of decentralized file manage
 
 This repository demonstrates the implementation of these concepts within a simple chat app.
 
-[GitHub repo](https://github.com/fabriguespe/xmtp-thirdweb-js) | [View Live Code](https://codesandbox.io/p/github/fabriguespe/xmtp-thirdweb-js/main?file=/src/components/Home.js:12,1&workspaceId=e62b6b32-35b7-415c-bdb9-743f1b880fb4)
+[GitHub repo](https://github.com/fabriguespe/xmtp-thirdweb-js) 
 
 #### Learning Objectives:
 - Setting up the ConnectWallet button
@@ -154,6 +154,7 @@ const handleLargeFile = async (file) => {
   setIsLoading(true);
 
   setLoadingText("Uploading to ThirdWeb Storage...");
+  //Image is uploaded to IPFS and returns the file's URL in `uploadUrl[0]`
   const uploadUrl = await upload({
     data: [file],
     options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },

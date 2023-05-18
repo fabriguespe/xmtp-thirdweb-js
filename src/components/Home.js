@@ -22,10 +22,18 @@ export default function Home() {
 
   // Function to load the existing messages in a conversation
   const newConversation = async function (xmtp_client,addressTo) {
-    const conversation = await xmtp_client.conversations.newConversation(addressTo);
-    convRef.current = conversation;
-    const messages = await conversation.messages();
-    setMessages(messages);
+    //Checks if the address is on the network
+    if(xmtp_client.canMessage(addressTo)){
+      //Creates a new conversation with the address
+      const conversation = await xmtp_client.conversations.newConversation(addressTo);
+      convRef.current = conversation;
+      //Loads the messages of the conversation
+      const messages = await conversation.messages();
+      setMessages(messages);
+    }else{
+      console.log("cant message because is not on the network.");
+      //cant message because is not on the network.
+    }
   };
 
   // Function to initialize the XMTP client
@@ -43,6 +51,7 @@ export default function Home() {
   };
 
   useEffect(() => {
+    console.log('je')
     if (xmtpConnected && convRef.current) {
       // Function to stream new messages in the conversation
       const streamMessages = async () => {
