@@ -99,16 +99,18 @@ Create a new XMTP instance and register the content types your chat app will uti
 ```tsx
 // Function to initialize the XMTP client
 const initXmtp = async function () {
-  // Create the XMTP client
-  const xmtp = await Client.create(signer, { env: "production" });
-  // Register the codecs. AttachmentCodec is for local attachments (<1MB)
-  xmtp.registerCodec(new AttachmentCodec());
-  //RemoteAttachmentCodec is for remote attachments (>1MB) using thirdweb storage
-  xmtp.registerCodec(new RemoteAttachmentCodec());
-  //Create or load conversation with Gm bot
-  newConversation(xmtp,PEER_ADDRESS);
-  // Set the XMTP client in state for later use
-  setXmtpConnected(!!xmtp.address);
+    // Create the XMTP client
+    const xmtp = await Client.create(signer, { env: "production" });
+    // Register the codecs. AttachmentCodec is for local attachments (<1MB)
+    xmtp.registerCodec(new AttachmentCodec());
+    //RemoteAttachmentCodec is for remote attachments (>1MB) using thirdweb storage
+    xmtp.registerCodec(new RemoteAttachmentCodec());
+    //Create or load conversation with Gm bot
+    newConversation(xmtp,PEER_ADDRESS);
+    // Set the XMTP client in state for later use
+    setXmtpConnected(!!xmtp.address);
+    //Set the client in the ref
+    clientRef.current=xmtp
 }
 ```
 
@@ -165,16 +167,6 @@ const handleSmallFile = async () => {
 For large attachments above 1MB, use the `RemoteAttachmentCodec`. The codec will automatically encrypt the attachment and upload it to the Thirdweb network.
 
 Thirdweb’s SDK will upload the image file to IPFS and return the file’s URL.
-
-```tsx
-//Use Thirdweb storage ook to upload the file to IPFS
-const { mutateAsync: upload } = useStorageUpload();
-const uploadUrl = await upload({
-  data: [file],
-  options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
-});
-//uploadUrl[0] contains the URL of the uploaded file
-```
 
 ```tsx
 // Function to handle sending a large file attachment
