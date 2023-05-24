@@ -1,6 +1,4 @@
-
-Follow these steps to start sending image attachments to wallets within your chat app. Our sample app includes everything you need to connect to wallets with thirdweb's WalletSDK, use XMTP's remote attachments, and upload larger files to thirdweb's storage. 
-
+Follow these steps to start sending image attachments to wallets within your chat app. Our sample app includes everything you need to connect to wallets with thirdweb's WalletSDK, use XMTP's remote attachments, and upload larger files to thirdweb's storage.
 
 <!--truncate-->
 
@@ -13,7 +11,7 @@ The WalletSDK is a development kit that grants developers access to a comprehens
 
 ### XMTP Content-Types
 
-Content types are a way to describe the *type* of *content* a message contains on XMTP. Out of the box, XMTP's SDKs support one content type: `text`.
+Content types are a way to describe the _type_ of _content_ a message contains on XMTP. Out of the box, XMTP's SDKs support one content type: `text`.
 [Read more](https://xmtp.org/docs/dev-concepts/content-types)
 
 ### Thirdweb storage
@@ -68,13 +66,14 @@ npm install @thirdweb-dev/react @thirdweb-dev/sdk @xmtp/xmtp-js xmtp-content-typ
 ```
 
 ### Setting up the ConnectWallet button
+
 ![](./media/xmtp-thirdweb/wallet.png)
 
 Begin by wrapping the app with `ThirdwebProvider`, then use the `ConnectWallet` component to establish wallet connectivity.
 
 ```tsx
 <ThirdwebProvider activeChain="goerli">
-        <Home/>
+  <Home />
 </ThirdwebProvider>
 ```
 
@@ -92,6 +91,7 @@ const signer = useSigner();
 That’s it! Next, proceed with signing in to XMTP.
 
 ### Signing in with XMTP
+
 ![](./media/xmtp-thirdweb/xmtp-sign.png)
 
 Create a new XMTP instance and register the content types your chat app will utilize.
@@ -99,19 +99,19 @@ Create a new XMTP instance and register the content types your chat app will uti
 ```tsx
 // Function to initialize the XMTP client
 const initXmtp = async function () {
-    // Create the XMTP client
-    const xmtp = await Client.create(signer, { env: "production" });
-    // Register the codecs. AttachmentCodec is for local attachments (<1MB)
-    xmtp.registerCodec(new AttachmentCodec());
-    //RemoteAttachmentCodec is for remote attachments (>1MB) using thirdweb storage
-    xmtp.registerCodec(new RemoteAttachmentCodec());
-    //Create or load conversation with Gm bot
-    newConversation(xmtp,PEER_ADDRESS);
-    // Set the XMTP client in state for later use
-    setXmtpConnected(!!xmtp.address);
-    //Set the client in the ref
-    clientRef.current=xmtp
-}
+  // Create the XMTP client
+  const xmtp = await Client.create(signer, { env: "production" });
+  // Register the codecs. AttachmentCodec is for local attachments (<1MB)
+  xmtp.registerCodec(new AttachmentCodec());
+  //RemoteAttachmentCodec is for remote attachments (>1MB) using thirdweb storage
+  xmtp.registerCodec(new RemoteAttachmentCodec());
+  //Create or load conversation with Gm bot
+  newConversation(xmtp, PEER_ADDRESS);
+  // Set the XMTP client in state for later use
+  setXmtpConnected(!!xmtp.address);
+  //Set the client in the ref
+  clientRef.current = xmtp;
+};
 ```
 
 ### Loading a conversation
@@ -119,16 +119,18 @@ const initXmtp = async function () {
 In this case, we are going to use our GM Bot and we will use the XMTP instance for creating the conversation and in case it exists it will bring its message history.
 
 ```tsx
-const newConversation = async function (xmtp_client,addressTo) {
+const newConversation = async function (xmtp_client, addressTo) {
   //Checks if the address is on the network
-  if(xmtp_client.canMessage(addressTo)){
+  if (xmtp_client.canMessage(addressTo)) {
     //Creates a new conversation with the address
-    const conversation = await xmtp_client.conversations.newConversation(addressTo);
+    const conversation = await xmtp_client.conversations.newConversation(
+      addressTo,
+    );
     convRef.current = conversation;
     //Loads the messages of the conversation
     const messages = await conversation.messages();
     setMessages(messages);
-  }else{
+  } else {
     console.log("cant message because is not on the network.");
     //cant message because is not on the network.
   }
@@ -155,8 +157,8 @@ const handleSmallFile = async () => {
 
   const attachment = {
     filename: image.name,
-    mimeType: 'image/png',
-    data: imgArray
+    mimeType: "image/png",
+    data: imgArray,
   };
   await convRef.send(attachment, { contentType: ContentTypeAttachment });
 };
@@ -171,54 +173,59 @@ Thirdweb’s SDK will upload the image file to IPFS and return the file’s URL.
 ```tsx
 // Function to handle sending a large file attachment
 const handleLargeFile = async (file) => {
-    setIsLoading(true);
-    
-    const blob = new Blob([file], { type: "image/png" });
-    let imgArray = new Uint8Array(await blob.arrayBuffer());
+  setIsLoading(true);
 
-    const attachment = {
-        filename: file.name,
-        mimeType: 'image/png',
-        data: imgArray
-    };
+  const blob = new Blob([file], { type: "image/png" });
+  let imgArray = new Uint8Array(await blob.arrayBuffer());
 
-    const attachmentCodec = new AttachmentCodec();
-    const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(attachment, attachmentCodec);
+  const attachment = {
+    filename: file.name,
+    mimeType: "image/png",
+    data: imgArray,
+  };
 
-    setLoadingText("Uploading to ThirdWeb Storage...");
-    const uploadUrl = await upload({
-        data: [new File([encryptedAttachment.payload.buffer], file.name)], // Convert Uint8Array back to File
-        options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
-    });
-    setLoadingText(uploadUrl[0]);
-    const remoteAttachment = {
-        url: uploadUrl[0],
-        contentDigest: encryptedAttachment.digest,
-        salt: encryptedAttachment.salt,
-        nonce: encryptedAttachment.nonce,
-        secret: encryptedAttachment.secret,
-        scheme: "https://",
-        filename: attachment.filename,
-        contentLength: encryptedAttachment.payload.byteLength,
-    };
-    setLoadingText("Sending...");
-    const message=await conversation.send(remoteAttachment, {
-        contentType: ContentTypeRemoteAttachment,
-        contentFallback: "a screenshot of over 1MB",
-    });
-    console.log('contentDigest',message.content.contentDigest)
-      
-    //This is just a decrpytion test
-    RemoteAttachmentCodec.load(message.content, client)
+  const attachmentCodec = new AttachmentCodec();
+  const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(
+    attachment,
+    attachmentCodec,
+  );
+
+  setLoadingText("Uploading to ThirdWeb Storage...");
+  const uploadUrl = await upload({
+    data: [new File([encryptedAttachment.payload.buffer], file.name)], // Convert Uint8Array back to File
+    options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
+  });
+  setLoadingText(uploadUrl[0]);
+  const remoteAttachment = {
+    url: uploadUrl[0],
+    contentDigest: encryptedAttachment.digest,
+    salt: encryptedAttachment.salt,
+    nonce: encryptedAttachment.nonce,
+    secret: encryptedAttachment.secret,
+    scheme: "https://",
+    filename: attachment.filename,
+    contentLength: encryptedAttachment.payload.byteLength,
+  };
+  setLoadingText("Sending...");
+  const message = await conversation.send(remoteAttachment, {
+    contentType: ContentTypeRemoteAttachment,
+    contentFallback: "a screenshot of over 1MB",
+  });
+  console.log("contentDigest", message.content.contentDigest);
+
+  //This is just a decrpytion test
+  RemoteAttachmentCodec.load(message.content, client)
     .then((decryptedAttachment) => {
-        console.log('decryptedAttachment',decryptedAttachment)
-        // Create a blob URL from the decrypted attachment data
-        const blob = new Blob([decryptedAttachment.data], { type: decryptedAttachment.mimeType });
-        const url = URL.createObjectURL(blob);
-        console.log(url)
-      })
+      console.log("decryptedAttachment", decryptedAttachment);
+      // Create a blob URL from the decrypted attachment data
+      const blob = new Blob([decryptedAttachment.data], {
+        type: decryptedAttachment.mimeType,
+      });
+      const url = URL.createObjectURL(blob);
+      console.log(url);
+    })
     .catch((error) => {
-        console.error('Failed to load and decrypt remote attachment:', error);
+      console.error("Failed to load and decrypt remote attachment:", error);
     });
 };
 ```
@@ -232,9 +239,9 @@ In the parent component, add a listener that will fetch new messages from a stre
 const streamMessages = async () => {
   const newStream = await convRef.current.streamMessages();
   for await (const msg of newStream) {
-    const exists = messages.find(m => m.id === msg.id);
+    const exists = messages.find((m) => m.id === msg.id);
     if (!exists) {
-      setMessages(prevMessages => {
+      setMessages((prevMessages) => {
         const msgsnew = [...prevMessages, msg];
         return msgsnew;
       });
@@ -254,7 +261,14 @@ if (message.contentType.sameAs(ContentTypeAttachment)) {
 // Function to render a local attachment as an image
 const objectURL = (attachment) => {
   const blob = new Blob([attachment.data], { type: attachment.mimeType });
-  return <img src={URL.createObjectURL(blob)} width={200} className="imageurl" alt={attachment.filename} />;
+  return (
+    <img
+      src={URL.createObjectURL(blob)}
+      width={200}
+      className="imageurl"
+      alt={attachment.filename}
+    />
+  );
 };
 ```
 
@@ -267,7 +281,14 @@ if (message.contentType.sameAs(ContentTypeRemoteAttachment)) {
 }
 // Function to render a remote attachment URL as an image
 const remoteURL = (attachment) => {
-  return <img src={attachment.url} width={200} className="imageurl" alt={attachment.filename} />;
+  return (
+    <img
+      src={attachment.url}
+      width={200}
+      className="imageurl"
+      alt={attachment.filename}
+    />
+  );
 };
 ```
 
