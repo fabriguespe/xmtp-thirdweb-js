@@ -93,6 +93,7 @@ function Chat({ client,messageHistory,  conversation }) {
       });
       console.log('contentDigest',message.content.contentDigest)
       
+      //This is just a decrpytion test
       RemoteAttachmentCodec.load(message.content, client)
       .then((decryptedAttachment) => {
         console.log('decryptedAttachment',decryptedAttachment)
