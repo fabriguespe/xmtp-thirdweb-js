@@ -9,7 +9,7 @@ import {
 } from "xmtp-content-type-remote-attachment";
 import styles from "./Chat.module.css";
 
-function Chat({ messageHistory,  conversation }) {
+function Chat({ client,messageHistory,  conversation }) {
   const address = useAddress();
   const { mutateAsync: upload } = useStorageUpload();
   const [isLoading, setIsLoading] = useState(false);
@@ -51,44 +51,63 @@ function Chat({ messageHistory,  conversation }) {
       mimeType: 'image/png',
       data: imgArray
     };
+    console.log(attachment)
     await conversation.send(attachment, { contentType: ContentTypeAttachment });
   };
-
-  // Function to handle sending a large file attachment
+  
   const handleLargeFile = async (file) => {
-    setIsLoading(true);
-    setLoadingText("Uploading to ThirdWeb Storage...");
-    const uploadUrl = await upload({
-      data: [file],
-      options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
-    });
-    setLoadingText(uploadUrl[0]);
-
-    const attachment = {
-      filename: file.name,
-      mimeType: 'image/png',
-      data: new TextEncoder().encode("hello world")
-    };
-
-    const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(attachment, new AttachmentCodec());
-
-    const remoteAttachment = {
-      url: uploadUrl[0],
-      contentDigest: encryptedAttachment.digest,
-      salt: encryptedAttachment.salt,
-      nonce: encryptedAttachment.nonce,
-      secret: encryptedAttachment.secret,
-      scheme: "https://",
-      filename: attachment.filename,
-      contentLength: attachment.data.byteLength,
-    };
-
-    setLoadingText("Sending...");
-    await conversation.send(remoteAttachment, {
-      contentType: ContentTypeRemoteAttachment,
-      contentFallback: "a screenshot of over 1MB",
-    });
+      setIsLoading(true);
+  
+      const blob = new Blob([file], { type: "image/png" });
+      let imgArray = new Uint8Array(await blob.arrayBuffer());
+  
+      const attachment = {
+        filename: file.name,
+        mimeType: 'image/png',
+        data: imgArray
+      };
+  
+      const attachmentCodec = new AttachmentCodec();
+      const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(attachment, attachmentCodec);
+  
+      setLoadingText("Uploading to ThirdWeb Storage...");
+      const uploadUrl = await upload({
+        data: [new File([encryptedAttachment.payload.buffer], file.name)], // Convert Uint8Array back to File
+        options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
+      });
+      setLoadingText(uploadUrl[0]);
+      const remoteAttachment = {
+        url: uploadUrl[0],
+        contentDigest: encryptedAttachment.digest,
+        salt: encryptedAttachment.salt,
+        nonce: encryptedAttachment.nonce,
+        secret: encryptedAttachment.secret,
+        scheme: "https://",
+        filename: attachment.filename,
+        contentLength: encryptedAttachment.payload.byteLength,
+      };
+      setLoadingText("Sending...");
+      const message=await conversation.send(remoteAttachment, {
+        contentType: ContentTypeRemoteAttachment,
+        contentFallback: "a screenshot of over 1MB",
+      });
+      console.log('contentDigest',message.content.contentDigest)
+      
+      RemoteAttachmentCodec.load(message.content, client)
+      .then((decryptedAttachment) => {
+        console.log('decryptedAttachment',decryptedAttachment)
+        
+        // Create a blob URL from the decrypted attachment data
+        const blob = new Blob([decryptedAttachment.data], { type: decryptedAttachment.mimeType });
+        const url = URL.createObjectURL(blob);
+        console.log(url)
+      })
+      .catch((error) => {
+        console.error('Failed to load and decrypt remote attachment:', error);
+      });
+      
   };
+  
 
   // Function to handle sending a text message
   const onSendMessage = async (value) => {

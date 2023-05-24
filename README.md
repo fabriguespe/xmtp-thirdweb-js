@@ -2,7 +2,6 @@
 
 Creating an effective 'Connect Wallet' flow is a challenging aspect of Web3 development. Thankfully, the team at Thirdweb has developed an excellent SDK, simplifying this process and enabling a superior wallet experience for your users.
 
-<!--truncate-->
 
 ### Concepts
 

@@ -15,6 +15,7 @@ const PEER_ADDRESS = '0x937C0d4a6294cdfa575de17382c7076b579DC176';
 export default function Home() {
   const [messages, setMessages] = useState(null);
   const convRef = useRef(null);
+  const clientRef = useRef(null);
   const address = useAddress();
   const signer = useSigner();
   const isConnected = !!signer;
@@ -48,10 +49,11 @@ export default function Home() {
     newConversation(xmtp,PEER_ADDRESS);
     // Set the XMTP client in state for later use
     setXmtpConnected(!!xmtp.address);
+    //Set the client in the ref
+    clientRef.current=xmtp
   };
 
   useEffect(() => {
-    console.log('je')
     if (xmtpConnected && convRef.current) {
       // Function to stream new messages in the conversation
       const streamMessages = async () => {
@@ -84,13 +86,12 @@ export default function Home() {
       {isConnected && !xmtpConnected && (
         <div className={styles.xmtp}>
           <ConnectWallet theme="light" />
-          <button className="btn" style={({ margin: '10px' })}>Connect to XMTP</button>
-          <img onClick={initXmtp} src='logomark.svg' alt='Your image description' width={200} className={styles.xmtpImg} />
+          <button onClick={initXmtp} className={styles.btnXmtp}>Connect to XMTP</button>
         </div>
       )}
       {/* Render the Chat component if connected, initialized, and messages exist */}
       {isConnected && xmtpConnected && messages && (
-        <Chat  conversation={convRef.current} messageHistory={messages} />
+        <Chat client={clientRef.current} conversation={convRef.current} messageHistory={messages} />
       )}
     </div>
   );

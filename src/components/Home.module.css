@@ -19,9 +19,16 @@
   justify-content: center;
   height: 100vh;
 }
-.xmtpImg{
+.btnXmtp{
+  all: unset;
+  background: hsl(300, 20.0%, 99.0%);
+  border: 1px solid hsl(278, 4.1%, 89.1%);
   cursor: pointer;
-  border: 1px solid black;
-  padding: 5px;
-  border-radius: 10px
+  padding: 12px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  align-items: center;
+  box-sizing: border-box;
+  line-height: 1;
+  margin: 10px;
 }
