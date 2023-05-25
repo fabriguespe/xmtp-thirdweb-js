@@ -1,5 +1,5 @@
 import { useStorageUpload } from "@thirdweb-dev/react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAddress } from "@thirdweb-dev/react";
 import {
   AttachmentCodec,
@@ -51,10 +51,23 @@ function Chat({ client, messageHistory, conversation }) {
       mimeType: "image/png",
       data: imgArray,
     };
-    console.log(attachment);
     await conversation.send(attachment, { contentType: ContentTypeAttachment });
   };
 
+  async function deloadFile(attachment) {
+    return RemoteAttachmentCodec.load(attachment, client)
+      .then((decryptedAttachment) => {
+        console.log("decryptedAttachment", decryptedAttachment);
+        // Create a blob URL from the decrypted attachment data
+        const blob = new Blob([decryptedAttachment.data], {
+          type: decryptedAttachment.mimeType,
+        });
+        return URL.createObjectURL(blob);
+      })
+      .catch((error) => {
+        console.error("Failed to load and decrypt remote attachment:", error);
+      });
+  }
   async function loadFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -71,12 +84,13 @@ function Chat({ client, messageHistory, conversation }) {
   const handleLargeFile = async (file) => {
     setIsLoading(true);
     const imgData = await loadFile(file);
+
     const attachment = {
       filename: file.name,
       mimeType: file.type,
       data: imgData,
     };
-    console.log(imgData);
+
     const attachmentCodec = new AttachmentCodec();
     const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(
       attachment,
@@ -88,6 +102,7 @@ function Chat({ client, messageHistory, conversation }) {
       data: [new File([encryptedAttachment.payload.buffer], file.name)], // Convert Uint8Array back to File
       options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
     });
+
     setLoadingText(uploadUrl[0]);
     const remoteAttachment = {
       url: uploadUrl[0],
@@ -97,7 +112,7 @@ function Chat({ client, messageHistory, conversation }) {
       secret: encryptedAttachment.secret,
       scheme: "https://",
       filename: attachment.filename,
-      contentLength: encryptedAttachment.payload.byteLength,
+      contentLength: attachment.data.byteLength,
     };
     setLoadingText("Sending...");
     const message = await conversation.send(remoteAttachment, {
@@ -105,21 +120,6 @@ function Chat({ client, messageHistory, conversation }) {
       contentFallback: "a screenshot of over 1MB",
     });
     console.log("contentDigest", message.content.contentDigest);
-
-    //This is just a decrpytion test
-    RemoteAttachmentCodec.load(message.content, client)
-      .then((decryptedAttachment) => {
-        console.log("decryptedAttachment", decryptedAttachment);
-        // Create a blob URL from the decrypted attachment data
-        const blob = new Blob([decryptedAttachment.data], {
-          type: decryptedAttachment.mimeType,
-        });
-        const url = URL.createObjectURL(blob);
-        console.log(url);
-      })
-      .catch((error) => {
-        console.error("Failed to load and decrypt remote attachment:", error);
-      });
   };
 
   // Function to handle sending a text message
@@ -160,19 +160,6 @@ function Chat({ client, messageHistory, conversation }) {
     alert("Check the console for the message details");
     console.log(message);
   };
-
-  // Function to render a remote attachment URL as an image
-  const remoteURL = (attachment) => {
-    return (
-      <img
-        src={attachment.url}
-        width={200}
-        className="imageurl"
-        alt={attachment.filename}
-      />
-    );
-  };
-
   // Function to render a local attachment as an image
   const objectURL = (attachment) => {
     const blob = new Blob([attachment.data], { type: attachment.mimeType });
@@ -183,6 +170,29 @@ function Chat({ client, messageHistory, conversation }) {
         className="imageurl"
         alt={attachment.filename}
       />
+    );
+  };
+  const RemoteURL = ({ attachment }) => {
+    const [imageURL, setImageURL] = useState(null);
+
+    useEffect(() => {
+      const fetchImage = async () => {
+        //This is just a decrpytion test
+        setImageURL(await deloadFile(attachment));
+      };
+
+      fetchImage();
+    }, [attachment]);
+
+    return imageURL ? (
+      <img
+        src={imageURL}
+        width={200}
+        className="imageurl"
+        alt={attachment.filename}
+      />
+    ) : (
+      <div>Loading...</div>
     );
   };
 
@@ -206,7 +216,7 @@ function Chat({ client, messageHistory, conversation }) {
             {(() => {
               if (message.contentType.sameAs(ContentTypeRemoteAttachment)) {
                 // Handle ContentTypeRemoteAttachment
-                return remoteURL(message.content);
+                return <RemoteURL attachment={message.content} />;
               } else if (message.contentType.sameAs(ContentTypeAttachment)) {
                 // Handle ContentTypeAttachment
                 return objectURL(message.content);

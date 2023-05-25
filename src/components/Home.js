@@ -10,7 +10,7 @@ import {
 } from "xmtp-content-type-remote-attachment";
 import styles from "./Home.module.css";
 
-const PEER_ADDRESS = "0x937C0d4a6294cdfa575de17382c7076b579DC176";
+const PEER_ADDRESS = "0x0AD3A479B31072bc14bDE6AaD601e4cbF13e78a8";
 
 export default function Home() {
   const [messages, setMessages] = useState(null);
