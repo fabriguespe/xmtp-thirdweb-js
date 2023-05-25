@@ -55,9 +55,10 @@ function Chat({ client, messageHistory, conversation }) {
   };
 
   async function deloadFile(attachment) {
+    console.log("attachment", attachment);
     return RemoteAttachmentCodec.load(attachment, client)
       .then((decryptedAttachment) => {
-        console.log("decryptedAttachment", decryptedAttachment);
+        console.log("attachment", decryptedAttachment);
         // Create a blob URL from the decrypted attachment data
         const blob = new Blob([decryptedAttachment.data], {
           type: decryptedAttachment.mimeType,
@@ -83,6 +84,7 @@ function Chat({ client, messageHistory, conversation }) {
   }
   const handleLargeFile = async (file) => {
     setIsLoading(true);
+    setLoadingText("Loading...");
     const imgData = await loadFile(file);
 
     const attachment = {
@@ -91,6 +93,7 @@ function Chat({ client, messageHistory, conversation }) {
       data: imgData,
     };
 
+    setLoadingText("Encrypting...");
     const attachmentCodec = new AttachmentCodec();
     const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(
       attachment,
@@ -119,7 +122,7 @@ function Chat({ client, messageHistory, conversation }) {
       contentType: ContentTypeRemoteAttachment,
       contentFallback: "a screenshot of over 1MB",
     });
-    console.log("contentDigest", message.content.contentDigest);
+    setLoadingText("Sent! 🔥");
   };
 
   // Function to handle sending a text message
@@ -135,7 +138,6 @@ function Chat({ client, messageHistory, conversation }) {
   // Function to handle dropping a file onto the input field
   const handleFileDrop = (event) => {
     event.preventDefault();
-    console.log(event.dataTransfer.files);
     const file = event.dataTransfer.files[0];
     setInputValue(file.name);
     setImage(file);
@@ -174,15 +176,17 @@ function Chat({ client, messageHistory, conversation }) {
   };
   const RemoteURL = ({ attachment }) => {
     const [imageURL, setImageURL] = useState(null);
+    const [retryCount, setRetryCount] = useState(0);
 
     useEffect(() => {
       const fetchImage = async () => {
         //This is just a decrpytion test
-        setImageURL(await deloadFile(attachment));
+        const url = await deloadFile(attachment);
+        if (url) setImageURL(url);
       };
 
       fetchImage();
-    }, [attachment]);
+    }, [attachment, retryCount]);
 
     return imageURL ? (
       <img
@@ -192,7 +196,10 @@ function Chat({ client, messageHistory, conversation }) {
         alt={attachment.filename}
       />
     ) : (
-      <div>Loading...</div>
+      <div>
+        Decryptying... may take up to 40 seconds
+        <button onClick={() => setRetryCount(retryCount + 1)}> 🔄</button>
+      </div>
     );
   };
 
@@ -216,7 +223,10 @@ function Chat({ client, messageHistory, conversation }) {
             {(() => {
               if (message.contentType.sameAs(ContentTypeRemoteAttachment)) {
                 // Handle ContentTypeRemoteAttachment
-                return <RemoteURL attachment={message.content} />;
+                // Add a key prop to force a re-render when a new message is sent
+                return (
+                  <RemoteURL key={message.id} attachment={message.content} />
+                );
               } else if (message.contentType.sameAs(ContentTypeAttachment)) {
                 // Handle ContentTypeAttachment
                 return objectURL(message.content);
