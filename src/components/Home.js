@@ -1,7 +1,6 @@
 import { ConnectWallet } from "@thirdweb-dev/react";
 import { useAddress, useSigner } from "@thirdweb-dev/react";
 import { Client } from "@xmtp/xmtp-js";
-
 import React, { useEffect, useState, useRef } from "react";
 import Chat from "./Chat";
 import {

@@ -166,68 +166,59 @@ const handleSmallFile = async () => {
 
 ### Send a remote attachment
 
-For large attachments above 1MB, use the `RemoteAttachmentCodec`. The codec will automatically encrypt the attachment and upload it to the Thirdweb network.
+For large attachments above 1MB, use the `RemoteAttachmentCodec`. The codec will automatically encrypt the attachment and upload it to the Thirdweb network. For uploading bigger files we are going to first encrypt them and then upload them to the IPFS network via the Thirdweb SDK.
 
-Thirdweb’s SDK will upload the image file to IPFS and return the file’s URL.
+1. Encrypt the file
 
 ```tsx
-// Function to handle sending a large file attachment
-const handleLargeFile = async (file) => {
-  setIsLoading(true);
+//Loadfile is a helper function to convert the file to a Uint8Array
+const imgData = await loadFile(file);
 
-  const blob = new Blob([file], { type: "image/png" });
-  let imgArray = new Uint8Array(await blob.arrayBuffer());
-
-  const attachment = {
-    filename: file.name,
-    mimeType: "image/png",
-    data: imgArray,
-  };
-
-  const attachmentCodec = new AttachmentCodec();
-  const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(
-    attachment,
-    attachmentCodec,
-  );
-
-  setLoadingText("Uploading to ThirdWeb Storage...");
-  const uploadUrl = await upload({
-    data: [new File([encryptedAttachment.payload.buffer], file.name)], // Convert Uint8Array back to File
-    options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
-  });
-  setLoadingText(uploadUrl[0]);
-  const remoteAttachment = {
-    url: uploadUrl[0],
-    contentDigest: encryptedAttachment.digest,
-    salt: encryptedAttachment.salt,
-    nonce: encryptedAttachment.nonce,
-    secret: encryptedAttachment.secret,
-    scheme: "https://",
-    filename: attachment.filename,
-    contentLength: encryptedAttachment.payload.byteLength,
-  };
-  setLoadingText("Sending...");
-  const message = await conversation.send(remoteAttachment, {
-    contentType: ContentTypeRemoteAttachment,
-    contentFallback: "a screenshot of over 1MB",
-  });
-  console.log("contentDigest", message.content.contentDigest);
-
-  //This is just a decrpytion test
-  RemoteAttachmentCodec.load(message.content, client)
-    .then((decryptedAttachment) => {
-      console.log("decryptedAttachment", decryptedAttachment);
-      // Create a blob URL from the decrypted attachment data
-      const blob = new Blob([decryptedAttachment.data], {
-        type: decryptedAttachment.mimeType,
-      });
-      const url = URL.createObjectURL(blob);
-      console.log(url);
-    })
-    .catch((error) => {
-      console.error("Failed to load and decrypt remote attachment:", error);
-    });
+const attachment = {
+  filename: file.name,
+  mimeType: file.type,
+  data: imgData,
 };
+
+const attachmentCodec = new AttachmentCodec();
+const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(
+  attachment,
+  attachmentCodec,
+);
+```
+
+2. Next we are going to upload the file to the IPFS network via the Thirdweb SDK.
+
+```tsx
+const uploadUrl = await upload({
+  //encryptedAttachment.payload.buffer is a Uint8Array
+  //We need to convert it to a File to upload it to the IPFS network
+  data: [new File([encryptedAttachment.payload.buffer], file.name)],
+  options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
+});
+
+//uploadUrl[0] is the IPFS hash of the ecnrypted file
+uploadUrl[0];
+```
+
+3. Finally we will use the encrypted file's URL to send it to the XMTP network using XMTP ContentTypeRemoteAttachment.
+
+```tsx
+const remoteAttachment = {
+  url: uploadUrl[0],
+  contentDigest: encryptedAttachment.digest,
+  salt: encryptedAttachment.salt,
+  nonce: encryptedAttachment.nonce,
+  secret: encryptedAttachment.secret,
+  scheme: "https://",
+  filename: attachment.filename,
+  contentLength: attachment.data.byteLength,
+};
+
+const message = await conversation.send(remoteAttachment, {
+  contentType: ContentTypeRemoteAttachment,
+  contentFallback: "a screenshot of over 1MB",
+});
 ```
 
 ### Receiving attachments
@@ -272,28 +263,28 @@ const objectURL = (attachment) => {
 };
 ```
 
-With remote storage, simply point the URL in your HTML.
+With remote storage is different because fetching and decrypting the file maybe slow. We need to use the `RemoteAttachmentCodec` to decrypt the file and then render it. On the future we will dive into performance improvements.
 
 ```tsx
-if (message.contentType.sameAs(ContentTypeRemoteAttachment)) {
-  // Handle ContentTypeRemoteAttachment
-  return remoteURL(message.content);
-}
-// Function to render a remote attachment URL as an image
-const remoteURL = (attachment) => {
-  return (
-    <img
-      src={attachment.url}
-      width={200}
-      className="imageurl"
-      alt={attachment.filename}
-    />
-  );
+// This method receives the message.content as attachment, the xmtp client and the RemoteAttachmentCodec
+export const deloadFile = async (attachment, client, RemoteAttachmentCodec) => {
+  return RemoteAttachmentCodec.load(attachment, client)
+    .then((decryptedAttachment) => {
+      console.log("attachment", decryptedAttachment);
+      // Create a blob URL from the decrypted attachment data
+      const blob = new Blob([decryptedAttachment.data], {
+        type: decryptedAttachment.mimeType,
+      });
+      return URL.createObjectURL(blob);
+    })
+    .catch((error) => {
+      console.error("Failed to load and decrypt remote attachment:", error);
+    });
 };
 ```
 
 That was easy! Now you can send and receive messages with attachments using XMTP and Thirdweb.
 
-### Conclusion
+### Join us on Discord
 
-We're excited to be partnering with Thirdweb to bring you better solutions for serving and reaching your end-users. Stay tuned for more guides coming soon!
+We're excited to be partnering with Thirdweb to bring you better solutions for serving and reaching your end-users. [Stay tuned](https://discord.com/invite/xmtp) for more guides coming soon!

@@ -1,6 +1,7 @@
 import { useStorageUpload } from "@thirdweb-dev/react";
 import React, { useState, useEffect } from "react";
 import { useAddress } from "@thirdweb-dev/react";
+import { deloadFile, loadFile } from "./helpers";
 import {
   AttachmentCodec,
   RemoteAttachmentCodec,
@@ -54,37 +55,10 @@ function Chat({ client, messageHistory, conversation }) {
     await conversation.send(attachment, { contentType: ContentTypeAttachment });
   };
 
-  async function deloadFile(attachment) {
-    console.log("attachment", attachment);
-    return RemoteAttachmentCodec.load(attachment, client)
-      .then((decryptedAttachment) => {
-        console.log("attachment", decryptedAttachment);
-        // Create a blob URL from the decrypted attachment data
-        const blob = new Blob([decryptedAttachment.data], {
-          type: decryptedAttachment.mimeType,
-        });
-        return URL.createObjectURL(blob);
-      })
-      .catch((error) => {
-        console.error("Failed to load and decrypt remote attachment:", error);
-      });
-  }
-  async function loadFile(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (reader.result instanceof ArrayBuffer) {
-          resolve(new Uint8Array(reader.result));
-        } else {
-          reject(new Error("Not an ArrayBuffer"));
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  }
   const handleLargeFile = async (file) => {
     setIsLoading(true);
     setLoadingText("Loading...");
+    //Loadfile is a helper function to convert the file to a Uint8Array
     const imgData = await loadFile(file);
 
     const attachment = {
@@ -95,6 +69,7 @@ function Chat({ client, messageHistory, conversation }) {
 
     setLoadingText("Encrypting...");
     const attachmentCodec = new AttachmentCodec();
+    //encodeEncrypted is a helper function to encrypt the file
     const encryptedAttachment = await RemoteAttachmentCodec.encodeEncrypted(
       attachment,
       attachmentCodec,
@@ -102,11 +77,14 @@ function Chat({ client, messageHistory, conversation }) {
 
     setLoadingText("Uploading to ThirdWeb Storage...");
     const uploadUrl = await upload({
+      //encryptedAttachment.payload.buffer is a Uint8Array
+      //We need to convert it to a File to upload it to the IPFS network
       data: [new File([encryptedAttachment.payload.buffer], file.name)], // Convert Uint8Array back to File
       options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
     });
-
+    //uploadUrl[0] is the IPFS hash of the ecnrypted file
     setLoadingText(uploadUrl[0]);
+
     const remoteAttachment = {
       url: uploadUrl[0],
       contentDigest: encryptedAttachment.digest,
@@ -181,7 +159,7 @@ function Chat({ client, messageHistory, conversation }) {
     useEffect(() => {
       const fetchImage = async () => {
         //This is just a decrpytion test
-        const url = await deloadFile(attachment);
+        const url = await deloadFile(attachment, client, RemoteAttachmentCodec);
         if (url) setImageURL(url);
       };
 
